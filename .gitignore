@@ -18,3 +18,13 @@ Thumbs.db
 
 # Angular
 *.log
+
+
+
+.nx/cache
+.nx/workspace-data
+
+# amplify
+.amplify
+amplify_outputs*
+amplifyconfiguration*
