@@ -10,14 +10,18 @@ export const schema = a.schema({
     profileImageKey: a.string(),
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
-    tenantId: a.string()  // For multi-company filtering
+    tenantId: a.string()  // For multi-company filtering later
   })
-    .authorization(allow => [
-      allow.owner(),
-      allow.groups(['admin', 'companyA_admin', 'companyB_admin'])
-    ])
+  .identifier(['cognitoId'])
+  .authorization((allow) => [
+    allow.owner().to(['read', 'update', 'delete']),
+    allow.groups(['admin', 'companyA_admin', 'companyB_admin']).to(['read', 'create', 'update', 'delete'])
+  ])
 });
 
 export const data = defineData({
-  schema
+  schema,
+  authorizationModes: {
+    defaultAuthorizationMode: 'userPool'
+  }
 });
