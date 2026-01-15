@@ -1,0 +1,14 @@
+{
+  "name": "protos-platform",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev:admin": "cd apps/admin && ng serve --port 4200",
+    "dev:portal": "cd apps/portal && ng serve --port 4201",
+    "deploy:backend": "npx ampx deploy --yes"
+  },
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.17.0",
+    "@aws-amplify/backend-cli": "^1.2.0"
+  }
+}

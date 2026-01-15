@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+.tmp/
+
+# Env & local
+.env
+.env.local
+amplify_outputs.json
+
+# OS & editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Angular
+*.log
