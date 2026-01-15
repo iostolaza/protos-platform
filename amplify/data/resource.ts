@@ -10,7 +10,7 @@ export const schema = a.schema({
     profileImageKey: a.string(),
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
-    tenantId: a.string()  // For multi-company filtering later
+    tenantId: a.string()  
   })
   .identifier(['cognitoId'])
   .authorization((allow) => [
