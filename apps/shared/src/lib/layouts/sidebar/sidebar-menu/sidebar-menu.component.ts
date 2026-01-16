@@ -2,11 +2,13 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, NgClass, NgTemplateOutlet } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-import { SubMenuItem } from '../../core/models/menu.model';
-import { MenuService } from '../../core/services/menu.service';
+import { SubMenuItem } from '../../../core/models/menu.model';
+import { MenuService } from '../../../core/services/menu.service';
 import { SidebarSubmenuComponent } from '../sidebar-submenu/sidebar-submenu.component';
-import { getIconPath } from '../../core/services/icon-preloader.service';
-import { RoleService } from '../../core/services/role.service';
+import { getIconPath } from '../../../core/services/icon-preloader.service';
+import { RoleService } from '../../../core/services/role.service';
+
+
 
 @Component({
   selector: 'app-sidebar-menu',

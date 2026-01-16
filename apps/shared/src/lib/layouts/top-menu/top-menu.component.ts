@@ -8,8 +8,7 @@ import { getIconPath } from '../../core/services/icon-preloader.service';
   selector: 'app-top-menu',
   standalone: true,
   imports: [ProfileMenuComponent, AngularSvgIconModule],
-  templateUrl: './top-menu.component.html',
-  styleUrls: ['./top-menu.component.scss'],
+  templateUrl: './top-menu.component.html'
 })
 export class TopMenuComponent {
   constructor(public menuService: MenuService) {}

@@ -3,20 +3,15 @@
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "types": [],
-    /* Add these two lines here */
     "ignoreDeprecations": "6.0",
     "baseUrl": "./",
     "paths": {
       "@shared": [
-        "src/app/shared/index.ts",
-        "src/app/shared/*"
+        "../../apps/shared/src/index.ts",
+        "../../apps/shared/src/*"
       ]
     }
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
 }

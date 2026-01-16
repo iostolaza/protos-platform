@@ -1,11 +1,11 @@
 import { Component, inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd, Event as RouterEvent } from '@angular/router';
 import { TopMenuComponent } from '../top-menu/top-menu.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { FooterComponent } from '../../shared/footer/footer.component';
+import { FooterComponent } from '../footer/footer.component';
 import { LayoutService } from '../../core/services/layout.service';
-import { Router, NavigationEnd, Event } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-main-layout',
@@ -16,17 +16,16 @@ import { Router, NavigationEnd, Event } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainLayoutComponent implements OnInit {
-  layout = inject(LayoutService);
+  public layout = inject(LayoutService);
   private router = inject(Router);
-  private mainContent: HTMLElement | null = null;
 
   ngOnInit(): void {
-    this.mainContent = document.getElementById('main-content');
-    this.router.events.subscribe((event: Event) => {
-      if (event instanceof NavigationEnd) {
-        if (this.mainContent) {
-          this.mainContent.scrollTop = 0;
-        }
+    // Using a filter makes the type narrowing explicit for the compiler
+    this.router.events.pipe(
+      filter((event: RouterEvent): event is NavigationEnd => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (typeof window !== 'undefined') {
+        window.scrollTo(0, 0);
       }
     });
   }
