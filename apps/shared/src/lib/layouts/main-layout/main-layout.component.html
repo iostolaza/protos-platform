@@ -1,0 +1,12 @@
+<div class="flex h-screen flex-col overflow-hidden">
+  <app-top-menu class="bg-card"></app-top-menu>
+  <div class="flex flex-1 overflow-hidden">
+    <app-sidebar class="bg-card"></app-sidebar>
+    <main id="main-content" class="flex-1 overflow-y-auto bg-background scrollbar-thumb-rounded scrollbar-track-rounded scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
+      <div class="mx-auto px-4 py-4 sm:px-8 lg:container">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+  <app-footer class="bg-card"></app-footer>
+</div>
