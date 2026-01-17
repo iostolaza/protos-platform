@@ -6,6 +6,7 @@ export interface SubMenuItem {
   icon?: IconName;
   children?: SubMenuItem[];
   active?: boolean;
+  adminOnly?: boolean;
   expanded?: boolean;
 }
 
@@ -14,4 +15,5 @@ export interface MenuItem {
   separator?: boolean;
   items: SubMenuItem[];
   active?: boolean;
+  adminOnly?: boolean;
 }

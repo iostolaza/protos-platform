@@ -12,7 +12,6 @@ import { filter } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, RouterOutlet, TopMenuComponent, SidebarComponent, FooterComponent],
   templateUrl: './main-layout.component.html',
-  styleUrls: ['./main-layout.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainLayoutComponent implements OnInit {

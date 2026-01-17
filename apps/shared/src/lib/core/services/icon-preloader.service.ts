@@ -321,8 +321,7 @@ export const ICONS = {
   'wrench-screwdriver': 'assets/icons/heroicons/outline/wrench-screwdriver.svg',
   'wrench': 'assets/icons/heroicons/outline/wrench.svg',
   'x-circle': 'assets/icons/heroicons/outline/x-circle.svg',
-  'x-mark': 'assets/icons/heroicons/outline/x-mark.svg',
-  'chart-pie': 'assets/icons/heroicons/outline/chart-pie.svg',
+  'x-mark': 'assets/icons/heroicons/outline/x-mark.svg'
 } as const;
 
 export type IconName = keyof typeof ICONS;

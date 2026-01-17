@@ -1,16 +1,13 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { generateClient } from 'aws-amplify/data';
 import { uploadData, getUrl } from 'aws-amplify/storage';
-import type { Schema } from '../../../../amplify/data/resource'; // Adjust path if needed
+import type { Schema } from '../../../../../../amplify/data/resource'; 
 import { fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
-import { Observable, Subject, from } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { Hub } from 'aws-amplify/utils';
 import { RoleService } from './role.service';
 
-type Models = Schema;
-type UserType = Models['User']['type'];
-type PaymentMethodType = Models['PaymentMethod']['type'];
+type UserType = Schema['User']['type'];
+type PaymentMethodType = Schema['PaymentMethod']['type'];
 
 export type UserProfile = UserType & { profileImageUrl?: string };
 
@@ -21,8 +18,6 @@ export class UserService {
   private client = generateClient<Schema>();
   public user = signal<UserProfile | null>(null);
   public allUsers = signal<UserType[]>([]);
-  private destroy$ = new Subject<void>();
-
   private roleService = inject(RoleService);
 
   constructor() {
@@ -34,7 +29,6 @@ export class UserService {
       switch (payload.event) {
         case 'signedIn':
         case 'tokenRefresh':
-          console.log('Auth event:', payload.event);
           await this.loadCurrentUser();
           await this.roleService.refreshGroups();
           break;
@@ -45,15 +39,7 @@ export class UserService {
       }
     });
 
-    (async () => {
-      try {
-        await fetchAuthSession();
-        await this.loadCurrentUser();
-        await this.roleService.refreshGroups();
-      } catch {
-        console.log('No initial user');
-      }
-    })();
+    this.loadCurrentUser().catch(() => console.log('No initial user'));
   }
 
   async load() {
@@ -62,176 +48,105 @@ export class UserService {
 
   private async loadCurrentUser() {
     try {
-      const { userId, signInDetails } = await getCurrentUser();
-      const email = signInDetails?.loginId;
+      const { userId } = await getCurrentUser();
 
-      const { data: userData, errors } = await this.client.models.User.get({ cognitoId: userId });
-      if (errors) throw new Error(errors.map((e: any) => e.message).join(', '));
+      const { data: user, errors } = await this.client.models.User.get({ cognitoId: userId });
+      if (errors) throw errors;
 
-      let user = userData;
-
-      if (!user && email) {
-        const { data: users } = await this.client.models.User.listUserByEmail({ email });
-        user = users[0];
-      }
-
-      if (!user && email) {
+      if (!user) {
+        const session = await fetchAuthSession();
+        const email = session.tokens?.idToken?.payload.email as string || '';
         const now = new Date().toISOString();
-        const { errors } = await this.client.models.User.create({
+        const { data: newUser, errors: createErrors } = await this.client.models.User.create({
           cognitoId: userId,
           email,
           createdAt: now,
           updatedAt: now,
         });
-        if (errors) throw new Error(errors.map((e: any) => e.message).join(', '));
-
-        const { data: newUser } = await this.client.models.User.get({ cognitoId: userId });
-        user = newUser;
+        if (createErrors) throw createErrors;
+        this.user.set({ ...newUser, profileImageUrl: undefined } as UserProfile);
+        return;
       }
 
-      if (!user) return;
-
-      const profileImageUrl = await this.getProfileImageUrlFromKey(user.profileImageKey);
+      const profileImageUrl = user.profileImageKey ? await this.getProfileImageUrlFromKey(user.profileImageKey) : undefined;
       this.user.set({ ...user, profileImageUrl });
-
-      this.client.models.User.observeQuery({ filter: { cognitoId: { eq: userId } } })
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: async ({ items }) => {
-            if (items[0]) await this.updateProfileFromItem(items[0]);
-          },
-          error: (err) => console.error('ObserveQuery error:', err),
-        });
     } catch (error) {
       console.error('Load user error:', error);
     }
   }
 
-  private async getProfileImageUrlFromKey(key: string | null | undefined): Promise<string | undefined> {
-    if (!key) return undefined;
+  private async getProfileImageUrlFromKey(key: string): Promise<string> {
     const { url } = await getUrl({ path: key, options: { expiresIn: 3600 } });
     return url.toString();
   }
 
-  private async updateProfileFromItem(item: UserType) {
-    let profileImageUrl = this.user()?.profileImageUrl;
-    const currentKey = this.user()?.profileImageKey;
-    if (item.profileImageKey !== currentKey) {
-      profileImageUrl = await this.getProfileImageUrlFromKey(item.profileImageKey);
-    }
-    const updatedUser: UserProfile = { ...item, profileImageUrl };
-    this.user.set(updatedUser);
-  }
-
   async save(updated: Partial<UserProfile>) {
-    const validUpdated: Partial<UserType> = Object.fromEntries(
-      Object.entries(updated).filter(([key]) =>
-        key !== 'cognitoId' && key !== 'createdAt' && key !== 'updatedAt' && key !== 'profileImageUrl'
-      )
-    );
-    await this.updateUser(validUpdated);
-  }
+    const current = this.user();
+    if (!current?.cognitoId) return;
 
-  async getAllUsers(nextToken: string | null = null): Promise<UserType[]> {
-    if (this.allUsers().length > 0) {
-      console.log('Returning cached all users');
-      return this.allUsers();
-    }
-    try {
-      const accumulated: UserType[] = [];
-      let token = nextToken;
-      do {
-        const { data, nextToken: newToken, errors } = await this.client.models.User.list({ nextToken: token ?? undefined });
-        if (errors) throw new Error(errors.map((e: any) => e.message).join(', '));
-        accumulated.push(...data);
-        token = newToken ?? null;
-      } while (token);
-      this.allUsers.set(accumulated);
-      return accumulated;
-    } catch (error) {
-      console.error('Get all users error:', error);
-      return [];
-    }
-  }
-
-  async updateUser(updatedData: Partial<UserType>) {
-    const currentUser = this.user();
-    if (!currentUser?.cognitoId) return;
-
-    const { data: updated, errors } = await this.client.models.User.update({
-      cognitoId: currentUser.cognitoId,
-      ...updatedData,
+    const { data: updatedUser, errors } = await this.client.models.User.update({
+      cognitoId: current.cognitoId,
+      ...updated,
       updatedAt: new Date().toISOString(),
     });
-    if (errors) throw new Error(errors.map((e: any) => e.message).join(', '));
-    if (!updated) throw new Error('Updated user is null');
-    await this.updateProfileFromItem(updated);
-    this.allUsers.set([]);
+    if (errors) throw errors;
+
+    const profileImageUrl = updatedUser?.profileImageKey ? await this.getProfileImageUrlFromKey(updatedUser.profileImageKey) : current.profileImageUrl;
+    this.user.set({ ...updatedUser, profileImageUrl } as UserProfile);
+  }
+
+  async getAllUsers(): Promise<UserType[]> {
+    const { data, errors } = await this.client.models.User.list({});
+    if (errors) throw errors;
+    this.allUsers.set(data);
+    return data;
   }
 
   async uploadProfileImage(file: File): Promise<string> {
-    try {
-      const { userId } = await getCurrentUser();
-      const result = await uploadData({
-        path: ({ identityId }) => `protected/${identityId}/profile-pictures/${userId}/${file.name}`,
-        data: file
-      }).result;
-      const key = result.path;
-      await this.updateUser({ profileImageKey: key });
-      return key;
-    } catch (error: unknown) {
-      console.error('Upload image error:', error);
-      throw error;
-    }
-  }
-
-  getProfileImageUrl(key: string): Observable<string> {
-    return from(this.getProfileImageUrlFromKey(key).then(u => u ?? ''));
+    const { userId } = await getCurrentUser();
+    const result = await uploadData({
+      path: ({ identityId }) => `protected/${identityId}/profile-pictures/${userId}/${file.name}`,
+      data: file
+    }).result;
+    const key = result.path;
+    await this.save({ profileImageKey: key });
+    return key;
   }
 
   async getPaymentMethods(): Promise<PaymentMethodType[]> {
-    try {
-      const { userId } = await getCurrentUser();
-      const { data, errors } = await this.client.models.PaymentMethod.listPaymentMethodByUserCognitoId({ userCognitoId: userId });
-      if (errors) throw new Error(errors.map((e: any) => e.message).join(', '));
-      return data;
-    } catch (error: unknown) {
-      console.error('Get payments error:', error);
-      return [];
-    }
+    const { userId } = await getCurrentUser();
+    const { data, errors } = await this.client.models.PaymentMethod.list({
+      filter: { userCognitoId: { eq: userId } }
+    });
+    if (errors) throw errors;
+    return data;
   }
 
   async addPaymentMethod(type: string, name: string) {
-    try {
-      const { userId } = await getCurrentUser();
-      const now = new Date().toISOString();
-      const { errors } = await this.client.models.PaymentMethod.create({ userCognitoId: userId, type, name, createdAt: now, updatedAt: now });
-      if (errors) throw new Error(errors.map((e: any) => e.message).join(', '));
-    } catch (error: unknown) {
-      console.error('Add payment error:', error);
-    }
+    const { userId } = await getCurrentUser();
+    const now = new Date().toISOString();
+    const { errors } = await this.client.models.PaymentMethod.create({
+      userCognitoId: userId,
+      type,
+      name,
+      createdAt: now,
+      updatedAt: now,
+    });
+    if (errors) throw errors;
   }
 
   async updatePaymentMethod(id: string, type: string, name: string) {
-    try {
-      const { errors } = await this.client.models.PaymentMethod.update({ id, type, name, updatedAt: new Date().toISOString() });
-      if (errors) throw new Error(errors.map((e: any) => e.message).join(', '));
-    } catch (error: unknown) {
-      console.error('Update payment error:', error);
-    }
+    const { errors } = await this.client.models.PaymentMethod.update({
+      id,
+      type,
+      name,
+      updatedAt: new Date().toISOString(),
+    });
+    if (errors) throw errors;
   }
 
   async deletePaymentMethod(id: string) {
-    try {
-      const { errors } = await this.client.models.PaymentMethod.delete({ id });
-      if (errors) throw new Error(errors.map((e: any) => e.message).join(', '));
-    } catch (error: unknown) {
-      console.error('Delete payment error:', error);
-    }
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+    const { errors } = await this.client.models.PaymentMethod.delete({ id });
+    if (errors) throw errors;
   }
 }
