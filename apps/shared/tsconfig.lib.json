@@ -2,10 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
+    "target": "es2022",
     "declaration": true,
-    "types": ["node"],
-    "moduleResolution": "node"
+    "declarationMap": true,
+    "inlineSources": true,
+    "types": []
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.spec.ts"]
+  "exclude": ["src/test-setup.ts", "src/**/*.spec.ts"],
+  "include": ["src/**/*.ts"]
 }

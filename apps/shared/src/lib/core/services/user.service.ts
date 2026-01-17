@@ -62,7 +62,7 @@ export class UserService {
           email,
           createdAt: now,
           updatedAt: now,
-        });
+        } as any);
         if (createErrors) throw createErrors;
         this.user.set({ ...newUser, profileImageUrl: undefined } as UserProfile);
         return;
@@ -85,10 +85,10 @@ export class UserService {
     if (!current?.cognitoId) return;
 
     const { data: updatedUser, errors } = await this.client.models.User.update({
-      cognitoId: current.cognitoId,
       ...updated,
+      cognitoId: current.cognitoId,
       updatedAt: new Date().toISOString(),
-    });
+    } as any);
     if (errors) throw errors;
 
     const profileImageUrl = updatedUser?.profileImageKey ? await this.getProfileImageUrlFromKey(updatedUser.profileImageKey) : current.profileImageUrl;
@@ -108,7 +108,7 @@ export class UserService {
       path: ({ identityId }) => `protected/${identityId}/profile-pictures/${userId}/${file.name}`,
       data: file
     }).result;
-    const key = result.path;
+    const key = (await result).path;
     await this.save({ profileImageKey: key });
     return key;
   }
@@ -131,7 +131,7 @@ export class UserService {
       name,
       createdAt: now,
       updatedAt: now,
-    });
+    } as any);
     if (errors) throw errors;
   }
 
@@ -141,7 +141,7 @@ export class UserService {
       type,
       name,
       updatedAt: new Date().toISOString(),
-    });
+    } as any);
     if (errors) throw errors;
   }
 

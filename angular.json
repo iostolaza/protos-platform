@@ -1,0 +1,62 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "apps",
+  "projects": {
+    "admin": {
+      "projectType": "application",
+      "root": "apps/admin",
+      "sourceRoot": "apps/admin/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/apps/admin",
+            "index": "apps/admin/src/index.html",
+            "browser": "apps/admin/src/main.ts",
+            "tsConfig": "apps/admin/tsconfig.app.json",
+            "assets": ["apps/admin/src/favicon.ico", "apps/admin/src/assets"],
+            "styles": ["apps/shared/src/styles/styles.css"],
+            "allowedCommonJsDependencies": ["buffer", "fast-xml-parser", "crc-32", "is-buffer"]
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "buildTarget": "admin:build"
+          }
+        }
+      }
+    },
+    "portal": {
+      "projectType": "application",
+      "root": "apps/portal",
+      "sourceRoot": "apps/portal/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/apps/portal",
+            "index": "apps/portal/src/index.html",
+            "browser": "apps/portal/src/main.ts",
+            "tsConfig": "apps/portal/tsconfig.app.json",
+            "assets": ["apps/portal/src/favicon.ico", "apps/portal/src/assets"],
+            "styles": ["apps/shared/src/styles/styles.css"],
+            "allowedCommonJsDependencies": ["buffer", "fast-xml-parser", "crc-32", "is-buffer"]
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "buildTarget": "portal:build"
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": false
+  }
+}

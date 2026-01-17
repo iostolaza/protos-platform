@@ -1,17 +1,11 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./out-tsc/app",
+    "outDir": "../../dist/out-tsc",
     "types": [],
-    "ignoreDeprecations": "6.0",
-    "baseUrl": "./",
-    "paths": {
-      "@shared": [
-        "../../apps/shared/src/index.ts",
-        "../../apps/shared/src/*"
-      ]
-    }
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts"],
+  "files": ["src/main.ts"],
+  "include": ["src/**/*.d.ts", "src/**/*.ts"],
   "exclude": ["src/**/*.spec.ts"]
 }

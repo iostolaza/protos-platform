@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { SvgIconRegistryService } from 'angular-svg-icon';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, map } from 'rxjs';
@@ -332,16 +332,14 @@ export function getIconPath(name: IconName): string {
 
 @Injectable({ providedIn: 'root' })
 export class IconPreloaderService {
-  constructor(
-    private iconRegistry: SvgIconRegistryService,
-    private http: HttpClient
-  ) {}
+  private iconRegistry = inject(SvgIconRegistryService);
+  private http = inject(HttpClient);
 
   preloadIcons() {
     const entries = Object.entries(ICONS) as [IconName, string][];
     const reqs = entries.map(([key, path]) =>
       this.http.get(path, { responseType: 'text' }).pipe(
-        map(svgText => {
+        map((svgText: string) => {
           this.iconRegistry.addSvg(path, svgText);
           return key;
         })

@@ -3,8 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev:admin": "cd apps/admin && ng serve --port 4200",
-    "dev:portal": "cd apps/portal && ng serve --port 4201",
+    "sync-amplify:admin": "cp amplify_outputs.json apps/admin/src/",
+    "sync-amplify:portal": "cp amplify_outputs.json apps/portal/src/",
+    "dev:admin": "npm run sync-amplify:admin && ng serve admin --port 4200",
+    "dev:portal": "npm run sync-amplify:portal && ng serve portal --port 4201",
     "deploy:backend": "npx ampx deploy --yes"
   },
   "devDependencies": {
@@ -24,9 +26,8 @@
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "5.9.3"
   },
-  "nx": {},
   "dependencies": {
     "@angular-devkit/build-angular": "^21.1.0",
     "@angular/animations": "^21.1.0",
