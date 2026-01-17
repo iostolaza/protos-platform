@@ -55,7 +55,7 @@ export class UserService {
 
       if (!user) {
         const session = await fetchAuthSession();
-        const email = session.tokens?.idToken?.payload.email as string || '';
+        const email = session.tokens?.idToken?.payload['email'] as string || '';
         const now = new Date().toISOString();
         const { data: newUser, errors: createErrors } = await this.client.models.User.create({
           cognitoId: userId,
